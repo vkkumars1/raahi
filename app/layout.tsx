@@ -1,10 +1,18 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
+import { Fraunces, Instrument_Sans, JetBrains_Mono } from 'next/font/google'
+import { CustomCursor } from '@/components/cursor'
+import { PaperGrain } from '@/components/design-system'
+import { SmoothScrollProvider } from '@/components/providers/smooth-scroll'
+
+const fraunces = Fraunces({ subsets: ['latin'], variable: '--font-fraunces', display: 'swap' })
+const instrument = Instrument_Sans({ subsets: ['latin'], variable: '--font-instrument', display: 'swap' })
+const jetbrains = JetBrains_Mono({ subsets: ['latin'], variable: '--font-jetbrains', display: 'swap' })
 
 export const metadata: Metadata = {
-  title: 'v0 App',
-  description: 'Created with v0',
+  title: 'Raahi — Share the ride, keep the city moving',
+  description: 'Verified commuter carpools for Indian cities.',
   generator: 'v0.app',
   icons: {
     icon: [
@@ -26,11 +34,8 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  colorScheme: 'light dark',
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: 'white' },
-    { media: '(prefers-color-scheme: dark)', color: 'black' },
-  ],
+  colorScheme: 'light',
+  themeColor: '#F4EDE0',
 }
 
 export default function RootLayout({
@@ -39,9 +44,11 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${fraunces.variable} ${instrument.variable} ${jetbrains.variable}`}>
       <body className="antialiased">
-        {children}
+        <SmoothScrollProvider>{children}</SmoothScrollProvider>
+        <PaperGrain />
+        <CustomCursor />
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
