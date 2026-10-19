@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { useMemo, useState } from 'react'
 import type { Ride } from '@/lib/api'
 
+const ncrLocations = ['Any NCR location', 'Gurugram Cyber City', 'Noida Sector 62', 'Connaught Place', 'Dwarka Sector 21', 'Okhla Phase III', 'Saket Corporate District']
+
 const RideMap = dynamic(() => import('@/components/ride-map').then((mod) => mod.RideMap), { ssr: false, loading: () => <div className="h-full min-h-[520px] animate-pulse bg-[#e8dfd0]" /> })
 
 function coordinates(ride: Ride) {
@@ -24,8 +26,8 @@ export function FindResults({ rides, initialPickup, initialDrop, initialTime }: 
     <header className="mb-8 flex flex-col gap-5 border-b border-ink/20 pb-7 lg:flex-row lg:items-end lg:justify-between">
       <div><p className="font-mono text-[11px] uppercase tracking-[0.2em] text-brick">Find a ride</p><h1 className="mt-2 font-serif text-5xl leading-none md:text-7xl">Your seat is<br /><em>waiting.</em></h1></div>
       <form action="/find" className="grid w-full gap-2 rounded-sm border-2 border-ink bg-cream p-3 shadow-[4px_4px_0_#14110F] lg:max-w-2xl lg:grid-cols-[1fr_1fr_150px_110px_auto]">
-        <label className="sr-only" htmlFor="pickup">Pickup</label><input id="pickup" name="pickup" defaultValue={initialPickup} placeholder="Pickup area" className="border-b border-ink/30 bg-transparent px-2 py-2 text-sm outline-none placeholder:text-ink/45" />
-        <label className="sr-only" htmlFor="drop">Drop</label><input id="drop" name="drop" defaultValue={initialDrop} placeholder="Drop area" className="border-b border-ink/30 bg-transparent px-2 py-2 text-sm outline-none placeholder:text-ink/45" />
+        <label className="sr-only" htmlFor="pickup">Pickup</label><select id="pickup" name="pickup" defaultValue={initialPickup || 'Any NCR location'} className="min-w-0 border-b border-ink/30 bg-transparent px-2 py-2 text-sm outline-none"><option value="">Pickup area</option>{ncrLocations.map((location) => <option key={`pickup-${location}`} value={location}>{location}</option>)}</select>
+        <label className="sr-only" htmlFor="drop">Drop</label><select id="drop" name="drop" defaultValue={initialDrop || 'Any NCR location'} className="min-w-0 border-b border-ink/30 bg-transparent px-2 py-2 text-sm outline-none"><option value="">Drop area</option>{ncrLocations.map((location) => <option key={`drop-${location}`} value={location}>{location}</option>)}</select>
         <input type="time" name="time" defaultValue={initialTime} className="border-b border-ink/30 bg-transparent px-2 py-2 font-mono text-sm outline-none" />
         <select name="windowMinutes" defaultValue="30" className="border-b border-ink/30 bg-transparent px-2 py-2 font-mono text-xs outline-none"><option value="15">±15 min</option><option value="30">±30 min</option><option value="60">±60 min</option></select>
         <button className="bg-saffron px-4 py-2 font-mono text-xs uppercase tracking-wide text-ink shadow-[3px_3px_0_#14110F] transition-transform active:translate-x-[3px] active:translate-y-[3px] active:shadow-none" type="submit">Search</button>
