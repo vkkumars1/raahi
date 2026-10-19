@@ -1,6 +1,22 @@
 
 @import "tailwindcss";
 
+.ticket-stub { position: relative; border: 2px solid #14110F; background: #F4EDE0; clip-path: polygon(0 16px, 16px 0, calc(100% - 16px) 0, 100% 16px, 100% calc(100% - 16px), calc(100% - 16px) 100%, 16px 100%, 0 calc(100% - 16px)); }
+.field-label { display: flex; flex-direction: column; gap: 0.5rem; font-family: var(--font-mono), monospace; font-size: 0.68rem; letter-spacing: 0.11em; text-transform: uppercase; }
+.raahi-input { min-height: 3rem; border: 2px solid rgba(20,17,15,.75); background: rgba(255,255,255,.2); padding: 0.7rem 0.8rem; font-family: var(--font-body), sans-serif; font-size: .95rem; outline: none; transition: border-color .2s, background .2s; }
+.raahi-input:focus { border-color: #C8442B; background: #fffaf1; }
+.raahi-input::placeholder { color: rgba(20,17,15,.38); }
+.field-error { color: #C8442B; font-family: var(--font-mono), monospace; font-size: .68rem; letter-spacing: .02em; text-transform: none; }
+.stepper-button { min-height: 3rem; width: 3rem; border: 2px solid #14110F; background: #F2A33A; font-size: 1.3rem; transition: transform .1s; }
+.stepper-button:active { transform: translate(2px, 2px); }
+.chip-toggle { display: flex; min-height: 3rem; align-items: center; justify-content: center; gap: .5rem; border: 2px solid rgba(20,17,15,.7); background: transparent; font-family: var(--font-mono), monospace; font-size: .72rem; text-transform: uppercase; letter-spacing: .1em; }
+.chip-toggle--active { background: #F2A33A; border-color: #14110F; }
+.raahi-map-pin { background: transparent; border: 0; }
+.raahi-map-pin__dot { display: block; height: 20px; width: 20px; border: 3px solid #14110F; background: #C8442B; border-radius: 999px 999px 999px 0; transform: rotate(-45deg); }
+.raahi-map-pin__dot--destination { background: #F2A33A; }
+.leaflet-control-zoom a { color: #14110F !important; background: #F4EDE0 !important; border-color: #14110F !important; }
+
+
 :root {
   --color-cream: #F4EDE0;
   --color-ink: #14110F;
