@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const protectedRoutes = ['/dashboard', '/offer', '/find', '/chat']
+const protectedRoutes = ['/dashboard', '/offer', '/chat', '/rides']
 
 export function middleware(request: NextRequest) {
   const isProtected = protectedRoutes.some((route) => request.nextUrl.pathname === route || request.nextUrl.pathname.startsWith(`${route}/`))
@@ -12,4 +12,4 @@ export function middleware(request: NextRequest) {
   return NextResponse.next()
 }
 
-export const config = { matcher: ['/dashboard/:path*', '/offer/:path*', '/find/:path*', '/chat/:path*'] }
+export const config = { matcher: ['/dashboard/:path*', '/offer/:path*', '/chat/:path*', '/rides/:path*'] }

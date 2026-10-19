@@ -53,7 +53,7 @@ export function RaahiSathi() {
     if (!open || suggestions.length || loadingSuggestions) return
     setLoadingSuggestions(true)
     void searchRides({ pickupLat: 12.9716, pickupLng: 77.5946, dropLat: 12.9698, dropLng: 77.75, time: '08:30', windowMinutes: 60 })
-      .then((rides) => setSuggestions(rides.slice(0, 3).map((ride) => ({ id: ride.id, origin: ride.origin, destination: ride.destination, departTime: ride.departTime, fare: Math.round(ride.distanceKm * ride.pricePerKm / 2), seats: ride.availableSeats ?? ride.seats }))))
+      .then((rides) => setSuggestions(rides.slice(0, 3).map((ride) => ({ id: ride.id, origin: ride.origin, destination: ride.destination, departTime: ride.departTime, fare: Math.round((ride.distanceKm ?? 0) * ride.pricePerKm / 2), seats: ride.availableSeats ?? ride.seats }))))
       .catch(() => setSuggestions(localRideCards()))
       .finally(() => setLoadingSuggestions(false))
   }, [open, suggestions.length, loadingSuggestions])
