@@ -12,16 +12,16 @@ const quickReplies = ['Find a ride to office', 'How is my fare calculated?', 'Sa
 const id = () => `${Date.now()}-${Math.random().toString(36).slice(2)}`
 
 const localReplies: Record<string, string> = {
-  'find a ride to office': 'Bilkul. Bangalore mein aaj ke quick matches dekh raha hoon — aapko time ke hisaab se best seat dikhata hoon.',
+  'find a ride to office': 'Bilkul. NCR mein aaj ke nearby corporate matches dekh raha hoon — aapko time ke hisaab se best seat dikhata hoon.',
   'how is my fare calculated?': 'Aapka share route ke distance × host ke per-km rate se calculate hota hai. No surge, no hidden charges.',
   'safety tips': 'Verified profile check karein, pickup public spot par rakhein, aur ride details apne trusted contact ko share karein. Safe travels!',
 }
 
 function localRideCards(): AssistantRide[] {
   return [
-    { id: 'demo-ride', origin: 'Indiranagar', destination: 'Whitefield', departTime: '08:30', fare: 81, seats: 2 },
-    { id: 'demo-ride-2', origin: 'Koramangala', destination: 'Manyata Tech Park', departTime: '09:00', fare: 49, seats: 1 },
-    { id: 'demo-ride-3', origin: 'HSR Layout', destination: 'Electronic City', departTime: '08:15', fare: 60, seats: 3 },
+    { id: 'demo-ride', origin: 'Rajiv Chowk, Gurugram', destination: 'Cyber City', departTime: '08:30', fare: 81, seats: 2 },
+    { id: 'demo-ride-2', origin: 'Noida Sector 62', destination: 'Okhla Phase III', departTime: '09:00', fare: 49, seats: 1 },
+    { id: 'demo-ride-3', origin: 'Dwarka Sector 21', destination: 'Connaught Place', departTime: '08:15', fare: 60, seats: 3 },
   ]
 }
 
@@ -52,7 +52,7 @@ export function RaahiSathi() {
   useEffect(() => {
     if (!open || suggestions.length || loadingSuggestions) return
     setLoadingSuggestions(true)
-    void searchRides({ pickupLat: 12.9716, pickupLng: 77.5946, dropLat: 12.9698, dropLng: 77.75, time: '08:30', windowMinutes: 60 })
+    void searchRides({ pickupLat: 28.6139, pickupLng: 77.209, dropLat: 28.4595, dropLng: 77.0266, time: '08:30', windowMinutes: 60 })
       .then((rides) => setSuggestions(rides.slice(0, 3).map((ride) => ({ id: ride.id, origin: ride.origin, destination: ride.destination, departTime: ride.departTime, fare: Math.round((ride.distanceKm ?? 0) * ride.pricePerKm / 2), seats: ride.availableSeats ?? ride.seats }))))
       .catch(() => setSuggestions(localRideCards()))
       .finally(() => setLoadingSuggestions(false))

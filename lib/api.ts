@@ -42,9 +42,9 @@ export type SearchParams = { pickupLat: number; pickupLng: number; dropLat: numb
 
 const mockUser = (email = 'rider@raahi.app'): User => ({ id: 'demo-user', email, name: 'Aarav Mehta', verified: true })
 const mockRides: Ride[] = [
-  { id: 'demo-ride', origin: 'Indiranagar', destination: 'Whitefield', departTime: '08:30', seats: 3, pricePerKm: 4.5, availableSeats: 2, distanceKm: 18, driver: mockUser() },
-  { id: 'demo-ride-2', origin: 'Koramangala', destination: 'Manyata Tech Park', departTime: '09:00', seats: 2, pricePerKm: 3.5, availableSeats: 1, distanceKm: 14, driver: { ...mockUser(), id: 'demo-user-2', name: 'Nisha Rao', email: 'nisha@raahi.app' } },
-  { id: 'demo-ride-3', origin: 'HSR Layout', destination: 'Electronic City', departTime: '08:15', seats: 4, pricePerKm: 3.75, availableSeats: 3, distanceKm: 16, driver: { ...mockUser(), id: 'demo-user-3', name: 'Kabir Singh', email: 'kabir@raahi.app' } },
+{ id: 'demo-ride', origin: 'Rajiv Chowk, Gurugram', destination: 'Cyber City', departTime: '08:30', seats: 3, pricePerKm: 4.5, availableSeats: 2, distanceKm: 18, driver: mockUser() },
+ { id: 'demo-ride-2', origin: 'Noida Sector 62', destination: 'Okhla Phase III', departTime: '09:00', seats: 2, pricePerKm: 3.5, availableSeats: 1, distanceKm: 14, driver: { ...mockUser(), id: 'demo-user-2', name: 'Nisha Rao', email: 'nisha@raahi.app' } },
+ { id: 'demo-ride-3', origin: 'Dwarka Sector 21', destination: 'Connaught Place', departTime: '08:15', seats: 4, pricePerKm: 3.75, availableSeats: 3, distanceKm: 16, driver: { ...mockUser(), id: 'demo-user-3', name: 'Kabir Singh', email: 'kabir@raahi.app' } },
 ]
 const mockRide = mockRides[0]
 const mockBooking: Booking = { id: 'demo-booking', rideId: mockRide.id, pickup: '100 Feet Road', drop: 'ITPL Main Gate', status: 'confirmed', ride: mockRide }

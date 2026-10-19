@@ -44,7 +44,7 @@ export function OfferForm() {
     if (query.trim().length < 3) { setSuggestions(undefined); return }
     setSearchError('')
     try {
-      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&countrycodes=in&limit=5&q=${encodeURIComponent(query)}`, { headers: { Accept: 'application/json' } })
+      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&countrycodes=in&limit=5&bounded=1&viewbox=76.8,29.0,77.8,28.2&q=${encodeURIComponent(`${query}, National Capital Region, India`)}`, { headers: { Accept: 'application/json' } })
       if (response.status === 429) throw new Error('Nominatim is busy. Please wait a moment and try again.')
       if (!response.ok) throw new Error('Address search is unavailable right now.')
       const data = await response.json()
@@ -101,5 +101,5 @@ export function OfferForm() {
 }
 
 function LocationField({ label, name, value, register, error, onChange }: { label: string; name: 'origin' | 'destination'; value: string; register: ReturnType<typeof useForm<FormValues>>['register']; error?: string; onChange: (event: React.ChangeEvent<HTMLInputElement>) => void }) {
-  return <label className="field-label">{label}<div className="relative"><MapPin className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#C8442B]" /><input value={value} placeholder={name === 'origin' ? 'Koramangala, Bengaluru' : 'Whitefield, Bengaluru'} {...register(name)} onChange={onChange} className="raahi-input w-full pl-10" autoComplete="off" /></div>{error && <span className="field-error">{error}</span>}</label>
+  return <label className="field-label">{label}<div className="relative"><MapPin className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#C8442B]" /><input value={value} placeholder={name === 'origin' ? 'Sector 62, Noida' : 'Cyber City, Gurugram'} {...register(name)} onChange={onChange} className="raahi-input w-full pl-10" autoComplete="off" /></div>{error && <span className="field-error">{error}</span>}</label>
 }
