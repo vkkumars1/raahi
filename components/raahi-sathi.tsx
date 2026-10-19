@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { Copy, LoaderCircle, MessageCircle, RotateCcw, Send, Square, X } from 'lucide-react'
 import { chatWithAi, warmupAi } from '@/lib/api'
 import { useAssistantStore, type AssistantMessage, type AssistantRide } from '@/lib/assistant-store'
@@ -22,6 +23,7 @@ function extractRides(text: string): AssistantRide[] | undefined {
 }
 
 export function RaahiSathi() {
+  const reducedMotion = useReducedMotion()
   const { open, warmed, messages, setOpen, setWarmed, addMessage, updateMessage } = useAssistantStore()
   const [input, setInput] = useState('')
   const [generating, setGenerating] = useState(false)
@@ -86,8 +88,9 @@ export function RaahiSathi() {
 
   return (
     <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end gap-3 sm:bottom-7 sm:right-7">
+      <AnimatePresence>
       {open && (
-        <section aria-label="Raahi Sathi assistant" className="w-[min(calc(100vw-2rem),380px)] overflow-hidden border-2 border-ink bg-cream shadow-[7px_7px_0_var(--ink)]">
+        <motion.section initial={{ opacity: 0, y: 18, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 12, scale: 0.98 }} transition={reducedMotion ? { duration: 0 } : { type: 'spring', stiffness: 360, damping: 28 }} aria-label="Raahi Sathi assistant" className="w-[min(calc(100vw-2rem),380px)] overflow-hidden border-2 border-ink bg-cream shadow-[7px_7px_0_var(--ink)]">
           <header className="flex items-center justify-between border-b-2 border-ink bg-saffron px-4 py-3">
             <div><p className="font-mono text-[10px] uppercase tracking-[0.2em]">Raahi Sathi</p><p className="font-fraunces text-lg leading-none">Aapka commute dost</p></div>
             <button type="button" aria-label="Close assistant" onClick={() => setOpen(false)} className="rounded-full p-1 hover:bg-ink/10"><X size={18} /></button>
@@ -105,8 +108,9 @@ export function RaahiSathi() {
             <textarea value={input} onChange={(event) => setInput(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing && event.keyCode !== 229) { event.preventDefault(); void sendMessage() } }} rows={1} aria-label="Message Raahi Sathi" placeholder="Type your sawaal..." className="min-w-0 flex-1 resize-none bg-transparent py-2 text-sm outline-none" />
             <button type="submit" aria-label="Send message" disabled={!input.trim() || generating} className="border-2 border-ink bg-saffron p-2 shadow-[3px_3px_0_var(--ink)] transition-transform active:translate-x-[3px] active:translate-y-[3px] active:shadow-none disabled:opacity-40"><Send size={16} /></button>
           </form>
-        </section>
+        </motion.section>
       )}
+      </AnimatePresence>
       <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} className="flex items-center gap-2 border-2 border-ink bg-saffron px-4 py-3 font-fraunces text-lg shadow-[5px_5px_0_var(--ink)] transition-transform hover:-translate-y-0.5 active:translate-x-[5px] active:translate-y-[5px] active:shadow-none"><MessageCircle size={18} /> Sathi</button>
     </div>
   )

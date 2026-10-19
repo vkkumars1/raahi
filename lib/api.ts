@@ -41,7 +41,12 @@ export type ProfileInput = { name: string; role: string; vehicleType: string; of
 export type SearchParams = { pickupLat: number; pickupLng: number; dropLat: number; dropLng: number; time: string; windowMinutes: number }
 
 const mockUser = (email = 'rider@raahi.app'): User => ({ id: 'demo-user', email, name: 'Aarav Mehta', verified: true })
-const mockRide: Ride = { id: 'demo-ride', origin: 'Indiranagar', destination: 'Whitefield', departTime: '08:30', seats: 3, pricePerKm: 4.5, availableSeats: 2, distanceKm: 18, driver: mockUser() }
+const mockRides: Ride[] = [
+  { id: 'demo-ride', origin: 'Indiranagar', destination: 'Whitefield', departTime: '08:30', seats: 3, pricePerKm: 4.5, availableSeats: 2, distanceKm: 18, driver: mockUser() },
+  { id: 'demo-ride-2', origin: 'Koramangala', destination: 'Manyata Tech Park', departTime: '09:00', seats: 2, pricePerKm: 3.5, availableSeats: 1, distanceKm: 14, driver: { ...mockUser(), id: 'demo-user-2', name: 'Nisha Rao', email: 'nisha@raahi.app' } },
+  { id: 'demo-ride-3', origin: 'HSR Layout', destination: 'Electronic City', departTime: '08:15', seats: 4, pricePerKm: 3.75, availableSeats: 3, distanceKm: 16, driver: { ...mockUser(), id: 'demo-user-3', name: 'Kabir Singh', email: 'kabir@raahi.app' } },
+]
+const mockRide = mockRides[0]
 const mockBooking: Booking = { id: 'demo-booking', rideId: mockRide.id, pickup: '100 Feet Road', drop: 'ITPL Main Gate', status: 'confirmed', ride: mockRide }
 
 async function request<T>(path: string, schema: z.ZodType<T>, init?: RequestInit): Promise<T> {
@@ -70,7 +75,7 @@ export async function createRide(input: RideInput): Promise<Ride> { try { return
 
 export async function searchRides(params: SearchParams): Promise<Ride[]> {
   const query = new URLSearchParams(Object.entries(params).map(([key, value]) => [key, String(value)]))
-  try { return await request(`/rides/search?${query}`, z.array(RideSchema)) } catch { return [mockRide] }
+  try { return await request(`/rides/search?${query}`, z.array(RideSchema)) } catch { return mockRides }
 }
 export async function getRide(id: string): Promise<Ride> { try { return await request(`/rides/${encodeURIComponent(id)}`, RideSchema) } catch { return { ...mockRide, id } } }
 export async function getMyRides(): Promise<Ride[]> { try { return await request('/rides/mine', z.array(RideSchema)) } catch { return [mockRide] } }
