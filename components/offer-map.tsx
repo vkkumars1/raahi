@@ -14,7 +14,7 @@ type Point = { lat: number; lng: number }
 function FitRoute({ points }: { points: Point[] }) {
   const map = useMap()
   useEffect(() => {
-    if (points.length > 1) map.fitBounds(points.map((point) => [point.lat, point.lng] as LatLngExpression), { padding: [38, 38] })
+    if (points.length > 1) map.fitBounds(points.map((point) => [point.lat, point.lng] as [number, number]), { padding: [38, 38] })
   }, [map, points])
   return null
 }

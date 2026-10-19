@@ -37,7 +37,7 @@ export function OfferForm() {
   const [suggestions, setSuggestions] = useState<{ field: 'origin' | 'destination'; items: Suggestion[] }>()
   const [searchError, setSearchError] = useState('')
   const [submitted, setSubmitted] = useState(false)
-  const { register, handleSubmit, setValue, watch, formState: { errors, isSubmitting } } = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: initialValues })
+  const { register, handleSubmit, setValue, watch, formState: { errors, isSubmitting } } = useForm<FormValues>({ resolver: zodResolver(schema) as never, defaultValues: initialValues })
   const values = watch()
 
   async function searchAddress(field: 'origin' | 'destination', query: string) {
