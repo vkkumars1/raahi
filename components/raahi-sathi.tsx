@@ -4,12 +4,26 @@ import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { Copy, LoaderCircle, MessageCircle, RotateCcw, Send, Square, X } from 'lucide-react'
-import { chatWithAi, warmupAi } from '@/lib/api'
+import { chatWithAi, searchRides, warmupAi } from '@/lib/api'
 import { useAssistantStore, type AssistantMessage, type AssistantRide } from '@/lib/assistant-store'
 import { cn } from '@/lib/utils'
 
 const quickReplies = ['Find a ride to office', 'How is my fare calculated?', 'Safety tips']
 const id = () => `${Date.now()}-${Math.random().toString(36).slice(2)}`
+
+const localReplies: Record<string, string> = {
+  'find a ride to office': 'Bilkul. Bangalore mein aaj ke quick matches dekh raha hoon — aapko time ke hisaab se best seat dikhata hoon.',
+  'how is my fare calculated?': 'Aapka share route ke distance × host ke per-km rate se calculate hota hai. No surge, no hidden charges.',
+  'safety tips': 'Verified profile check karein, pickup public spot par rakhein, aur ride details apne trusted contact ko share karein. Safe travels!',
+}
+
+function localRideCards(): AssistantRide[] {
+  return [
+    { id: 'demo-ride', origin: 'Indiranagar', destination: 'Whitefield', departTime: '08:30', fare: 81, seats: 2 },
+    { id: 'demo-ride-2', origin: 'Koramangala', destination: 'Manyata Tech Park', departTime: '09:00', fare: 49, seats: 1 },
+    { id: 'demo-ride-3', origin: 'HSR Layout', destination: 'Electronic City', departTime: '08:15', fare: 60, seats: 3 },
+  ]
+}
 
 function extractRides(text: string): AssistantRide[] | undefined {
   const match = text.match(/\{[\s\S]*?"type"\s*:\s*"rides"[\s\S]*?\}/)
@@ -28,10 +42,21 @@ export function RaahiSathi() {
   const [input, setInput] = useState('')
   const [generating, setGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [suggestions, setSuggestions] = useState<AssistantRide[]>([])
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false)
   const abortRef = useRef<AbortController | null>(null)
   const endRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages, generating])
+  useEffect(() => { endRef.current?.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth' }) }, [messages, generating, reducedMotion])
+
+  useEffect(() => {
+    if (!open || suggestions.length || loadingSuggestions) return
+    setLoadingSuggestions(true)
+    void searchRides({ pickupLat: 12.9716, pickupLng: 77.5946, dropLat: 12.9698, dropLng: 77.75, time: '08:30', windowMinutes: 60 })
+      .then((rides) => setSuggestions(rides.slice(0, 3).map((ride) => ({ id: ride.id, origin: ride.origin, destination: ride.destination, departTime: ride.departTime, fare: Math.round(ride.distanceKm * ride.pricePerKm / 2), seats: ride.availableSeats ?? ride.seats }))))
+      .catch(() => setSuggestions(localRideCards()))
+      .finally(() => setLoadingSuggestions(false))
+  }, [open, suggestions.length, loadingSuggestions])
 
   useEffect(() => {
     if (open && !warmed) {
@@ -55,6 +80,14 @@ export function RaahiSathi() {
     const timeout = window.setTimeout(() => controller.abort(), 60000)
 
     try {
+      if (!process.env.NEXT_PUBLIC_API_URL) {
+        const normalized = text.toLowerCase()
+        const isRideRequest = normalized.includes('ride') || normalized.includes('office')
+        const localContent = localReplies[normalized] ?? 'Samajh gaya. Main verified options aur simple next step suggest karta hoon.'
+        await new Promise((resolve) => window.setTimeout(resolve, 420))
+        updateMessage(assistantId, { content: localContent, rides: isRideRequest ? suggestions.length ? suggestions : localRideCards() : undefined, status: 'sent' })
+        return
+      }
       const response = await chatWithAi(text, controller.signal)
       if (!response.body) throw new Error('No stream')
       const reader = response.body.getReader()
@@ -98,6 +131,8 @@ export function RaahiSathi() {
           <div className="flex max-h-[min(55vh,470px)] flex-col gap-3 overflow-y-auto p-4">
             {messages.length === 0 && <div className="border border-dashed border-ink/40 p-3 text-sm">Namaste. Ride dhoondhein ya fare samjhein?</div>}
             {messages.map((message) => <Message key={message.id} message={message} />)}
+            {loadingSuggestions && <div className="flex items-center gap-2 border border-dashed border-ink/30 p-3 text-xs text-ink/60"><LoaderCircle className="animate-spin" size={14} /> Nearby rides dekh raha hoon...</div>}
+            {!loadingSuggestions && suggestions.length > 0 && messages.length === 0 && <div className="flex flex-col gap-2"><p className="font-mono text-[10px] uppercase tracking-wider text-ink/60">Aaj ke nearby matches</p>{suggestions.map((ride) => <Link key={ride.id} href={`/rides/${ride.id}`} className="border border-ink/40 bg-cream p-2 text-xs transition-transform hover:-translate-y-0.5 hover:bg-saffron"><div className="flex justify-between font-mono text-[10px]"><span>{ride.departTime}</span><span>₹{ride.fare} · {ride.seats} seats</span></div><div className="font-semibold">{ride.origin} → {ride.destination}</div></Link>)}</div>}
             {!warmed && <p className="flex items-center gap-2 text-xs text-ink/60"><LoaderCircle className="animate-spin" size={14} /> Waking up...</p>}
             {generating && <button type="button" onClick={() => abortRef.current?.abort()} className="mx-auto flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider"><Square size={12} /> Stop generating</button>}
             {error && <div className="flex items-center justify-between gap-3 border border-brick bg-brick/10 p-2 text-xs"><span>{error}</span><button type="button" onClick={retry} className="flex items-center gap-1 font-mono uppercase"><RotateCcw size={12} /> Retry</button></div>}
