@@ -1,6 +1,8 @@
 import { Suspense } from 'react'
+import { cookies } from 'next/headers'
 import { searchRides } from '@/lib/api'
 import { FindResults } from '@/components/find-results'
+import { FindAuthGate } from '@/components/find-auth-gate'
 
 function parseCoordinate(value: string | undefined, fallback: number) { const parsed = Number(value); return Number.isFinite(parsed) ? parsed : fallback }
 async function Results({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
@@ -12,4 +14,8 @@ async function Results({ searchParams }: { searchParams: Promise<Record<string, 
   return <FindResults rides={rides} initialPickup={pickup} initialDrop={drop} initialTime={time} />
 }
 function Skeleton() { return <div className="mx-auto max-w-7xl px-5 pb-20 pt-8"><div className="h-32 animate-pulse bg-ink/10" /><div className="mt-8 flex max-w-2xl flex-col gap-4">{[1, 2, 3].map((item) => <div key={item} className="ticket-stub h-56 animate-pulse bg-ink/10" />)}</div></div> }
-export default function FindPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) { return <Suspense fallback={<Skeleton />}><Results searchParams={searchParams} /></Suspense> }
+export default async function FindPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const session = (await cookies()).get('raahi_session')
+  if (!session) return <FindAuthGate />
+  return <Suspense fallback={<Skeleton />}><Results searchParams={searchParams} /></Suspense>
+}

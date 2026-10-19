@@ -6,22 +6,23 @@ import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { Copy, LoaderCircle, MessageCircle, RotateCcw, Send, Square, X } from 'lucide-react'
 import { chatWithAi, searchRides, warmupAi } from '@/lib/api'
 import { useAssistantStore, type AssistantMessage, type AssistantRide } from '@/lib/assistant-store'
+import { useUserStore } from '@/lib/user-store'
 import { cn } from '@/lib/utils'
 
 const quickReplies = ['Find a ride to office', 'How is my fare calculated?', 'Safety tips']
 const id = () => `${Date.now()}-${Math.random().toString(36).slice(2)}`
 
 const localReplies: Record<string, string> = {
-  'find a ride to office': 'Bilkul. Bangalore mein aaj ke quick matches dekh raha hoon — aapko time ke hisaab se best seat dikhata hoon.',
-  'how is my fare calculated?': 'Aapka share route ke distance × host ke per-km rate se calculate hota hai. No surge, no hidden charges.',
-  'safety tips': 'Verified profile check karein, pickup public spot par rakhein, aur ride details apne trusted contact ko share karein. Safe travels!',
+  'find a ride to office': 'I am checking nearby NCR corporate routes and will show the best available seats for your time.',
+  'how is my fare calculated?': 'Your share is based on the route distance multiplied by the host\'s per-kilometre rate. No surge and no hidden charges.',
+  'safety tips': 'Check the host\'s verified profile, choose a public pickup point, and share your ride details with someone you trust. Travel safely!',
 }
 
 function localRideCards(): AssistantRide[] {
   return [
-    { id: 'demo-ride', origin: 'Indiranagar', destination: 'Whitefield', departTime: '08:30', fare: 81, seats: 2 },
-    { id: 'demo-ride-2', origin: 'Koramangala', destination: 'Manyata Tech Park', departTime: '09:00', fare: 49, seats: 1 },
-    { id: 'demo-ride-3', origin: 'HSR Layout', destination: 'Electronic City', departTime: '08:15', fare: 60, seats: 3 },
+    { id: 'demo-ride', origin: 'Rajiv Chowk, Gurugram', destination: 'Cyber City', departTime: '08:30', fare: 81, seats: 2 },
+    { id: 'demo-ride-2', origin: 'Noida Sector 62', destination: 'Okhla Phase III', departTime: '09:00', fare: 49, seats: 1 },
+    { id: 'demo-ride-3', origin: 'Dwarka Sector 21', destination: 'Connaught Place', departTime: '08:15', fare: 60, seats: 3 },
   ]
 }
 
@@ -39,6 +40,8 @@ function extractRides(text: string): AssistantRide[] | undefined {
 export function RaahiSathi() {
   const reducedMotion = useReducedMotion()
   const { open, warmed, messages, setOpen, setWarmed, addMessage, updateMessage } = useAssistantStore()
+  const user = useUserStore((state) => state.user)
+  const displayName = user?.name?.split(' ')[0] || 'there'
   const [input, setInput] = useState('')
   const [generating, setGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -50,10 +53,10 @@ export function RaahiSathi() {
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth' }) }, [messages, generating, reducedMotion])
 
   useEffect(() => {
-    if (!open || suggestions.length || loadingSuggestions) return
+    if (!open || !user || suggestions.length || loadingSuggestions) return
     setLoadingSuggestions(true)
-    void searchRides({ pickupLat: 12.9716, pickupLng: 77.5946, dropLat: 12.9698, dropLng: 77.75, time: '08:30', windowMinutes: 60 })
-      .then((rides) => setSuggestions(rides.slice(0, 3).map((ride) => ({ id: ride.id, origin: ride.origin, destination: ride.destination, departTime: ride.departTime, fare: Math.round(ride.distanceKm * ride.pricePerKm / 2), seats: ride.availableSeats ?? ride.seats }))))
+    void searchRides({ pickupLat: 28.6139, pickupLng: 77.209, dropLat: 28.4595, dropLng: 77.0266, time: '08:30', windowMinutes: 60 })
+      .then((rides) => setSuggestions(rides.slice(0, 3).map((ride) => ({ id: ride.id, origin: ride.origin, destination: ride.destination, departTime: ride.departTime, fare: Math.round((ride.distanceKm ?? 0) * ride.pricePerKm / 2), seats: ride.availableSeats ?? ride.seats }))))
       .catch(() => setSuggestions(localRideCards()))
       .finally(() => setLoadingSuggestions(false))
   }, [open, suggestions.length, loadingSuggestions])
@@ -69,6 +72,10 @@ export function RaahiSathi() {
     const text = value.trim()
     if (!text || generating) return
     setInput('')
+    if (!user) {
+      addMessage({ id: id(), role: 'assistant', content: 'Please sign in first so I can show rides matched to your account and keep your commute details secure.', status: 'sent' })
+      return
+    }
     setError(null)
     const userId = id()
     const assistantId = id()
@@ -83,7 +90,7 @@ export function RaahiSathi() {
       if (!process.env.NEXT_PUBLIC_API_URL) {
         const normalized = text.toLowerCase()
         const isRideRequest = normalized.includes('ride') || normalized.includes('office')
-        const localContent = localReplies[normalized] ?? 'Samajh gaya. Main verified options aur simple next step suggest karta hoon.'
+        const localContent = localReplies[normalized] ?? `I understand, ${displayName}. I can help you find a verified NCR ride, explain your fare, or share practical safety tips.`
         await new Promise((resolve) => window.setTimeout(resolve, 420))
         updateMessage(assistantId, { content: localContent, rides: isRideRequest ? suggestions.length ? suggestions : localRideCards() : undefined, status: 'sent' })
         return
@@ -102,8 +109,8 @@ export function RaahiSathi() {
       updateMessage(assistantId, { content, rides: extractRides(content), status: 'sent' })
     } catch (cause) {
       if ((cause as Error).name !== 'AbortError') {
-        setError('Sathi thoda busy hai. Ek baar phir try karein.')
-        updateMessage(assistantId, { content: 'Sorry, abhi reply nahi aa paaya.', status: 'error' })
+        setError('The assistant is taking longer than expected. Please try again.')
+        updateMessage(assistantId, { content: 'Sorry, I could not get a response right now.', status: 'error' })
       } else if (controller.signal.aborted) {
         updateMessage(assistantId, { status: 'sent' })
       }
@@ -125,22 +132,22 @@ export function RaahiSathi() {
       {open && (
         <motion.section initial={{ opacity: 0, y: 18, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 12, scale: 0.98 }} transition={reducedMotion ? { duration: 0 } : { type: 'spring', stiffness: 360, damping: 28 }} aria-label="Raahi Sathi assistant" className="w-[min(calc(100vw-2rem),380px)] overflow-hidden border-2 border-ink bg-cream shadow-[7px_7px_0_var(--ink)]">
           <header className="flex items-center justify-between border-b-2 border-ink bg-saffron px-4 py-3">
-            <div><p className="font-mono text-[10px] uppercase tracking-[0.2em]">Raahi Sathi</p><p className="font-fraunces text-lg leading-none">Aapka commute dost</p></div>
+            <div><p className="font-mono text-[10px] uppercase tracking-[0.2em]">Raahi Sathi</p><p className="font-fraunces text-lg leading-none">Your commute assistant</p></div>
             <button type="button" aria-label="Close assistant" onClick={() => setOpen(false)} className="rounded-full p-1 hover:bg-ink/10"><X size={18} /></button>
           </header>
           <div className="flex max-h-[min(55vh,470px)] flex-col gap-3 overflow-y-auto p-4">
-            {messages.length === 0 && <div className="border border-dashed border-ink/40 p-3 text-sm">Namaste. Ride dhoondhein ya fare samjhein?</div>}
+            {messages.length === 0 && <div className="border border-dashed border-ink/40 p-3 text-sm">Hello{user?.name ? ` ${displayName}` : ''}. {user ? 'I can help you find a verified NCR ride, understand your fare, or share safety tips.' : <>Please <Link className="font-semibold text-brick underline" href="/login">sign in</Link> to find rides and get personalised help.</>}</div>}
             {messages.map((message) => <Message key={message.id} message={message} />)}
-            {loadingSuggestions && <div className="flex items-center gap-2 border border-dashed border-ink/30 p-3 text-xs text-ink/60"><LoaderCircle className="animate-spin" size={14} /> Nearby rides dekh raha hoon...</div>}
-            {!loadingSuggestions && suggestions.length > 0 && messages.length === 0 && <div className="flex flex-col gap-2"><p className="font-mono text-[10px] uppercase tracking-wider text-ink/60">Aaj ke nearby matches</p>{suggestions.map((ride) => <Link key={ride.id} href={`/rides/${ride.id}`} className="border border-ink/40 bg-cream p-2 text-xs transition-transform hover:-translate-y-0.5 hover:bg-saffron"><div className="flex justify-between font-mono text-[10px]"><span>{ride.departTime}</span><span>₹{ride.fare} · {ride.seats} seats</span></div><div className="font-semibold">{ride.origin} → {ride.destination}</div></Link>)}</div>}
-            {!warmed && <p className="flex items-center gap-2 text-xs text-ink/60"><LoaderCircle className="animate-spin" size={14} /> Waking up...</p>}
+            {loadingSuggestions && <div className="flex items-center gap-2 border border-dashed border-ink/30 p-3 text-xs text-ink/60"><LoaderCircle className="animate-spin" size={14} /> Checking nearby NCR rides...</div>}
+            {!loadingSuggestions && suggestions.length > 0 && messages.length === 0 && <div className="flex flex-col gap-2"><p className="font-mono text-[10px] uppercase tracking-wider text-ink/60">Nearby NCR matches</p>{suggestions.map((ride) => <Link key={ride.id} href={`/rides/${ride.id}`} className="border border-ink/40 bg-cream p-2 text-xs transition-transform hover:-translate-y-0.5 hover:bg-saffron"><div className="flex justify-between font-mono text-[10px]"><span>{ride.departTime}</span><span>₹{ride.fare} · {ride.seats} seats</span></div><div className="font-semibold">{ride.origin} ��� {ride.destination}</div></Link>)}</div>}
+            {!warmed && <p className="flex items-center gap-2 text-xs text-ink/60"><LoaderCircle className="animate-spin" size={14} /> Waking up the assistant...</p>}
             {generating && <button type="button" onClick={() => abortRef.current?.abort()} className="mx-auto flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider"><Square size={12} /> Stop generating</button>}
             {error && <div className="flex items-center justify-between gap-3 border border-brick bg-brick/10 p-2 text-xs"><span>{error}</span><button type="button" onClick={retry} className="flex items-center gap-1 font-mono uppercase"><RotateCcw size={12} /> Retry</button></div>}
             <div ref={endRef} />
           </div>
           <div className="flex flex-wrap gap-2 border-t border-ink/20 px-4 py-3">{quickReplies.map((reply) => <button key={reply} type="button" onClick={() => void sendMessage(reply)} className="border border-ink/50 px-2 py-1 text-[11px] hover:bg-saffron">{reply}</button>)}</div>
           <form onSubmit={(event) => { event.preventDefault(); void sendMessage() }} className="flex gap-2 border-t-2 border-ink p-3">
-            <textarea value={input} onChange={(event) => setInput(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing && event.keyCode !== 229) { event.preventDefault(); void sendMessage() } }} rows={1} aria-label="Message Raahi Sathi" placeholder="Type your sawaal..." className="min-w-0 flex-1 resize-none bg-transparent py-2 text-sm outline-none" />
+            <textarea value={input} onChange={(event) => setInput(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing && event.keyCode !== 229) { event.preventDefault(); void sendMessage() } }} rows={1} aria-label="Message Raahi Sathi" placeholder="Ask about a ride, fare, or safety..." className="min-w-0 flex-1 resize-none bg-transparent py-2 text-sm outline-none" />
             <button type="submit" aria-label="Send message" disabled={!input.trim() || generating} className="border-2 border-ink bg-saffron p-2 shadow-[3px_3px_0_var(--ink)] transition-transform active:translate-x-[3px] active:translate-y-[3px] active:shadow-none disabled:opacity-40"><Send size={16} /></button>
           </form>
         </motion.section>

@@ -39,7 +39,7 @@ function HeroRoad() {
           <span className="font-mono text-[8px] font-bold">RAAHI</span>
         </div>
       </motion.div>
-      <div className="absolute bottom-2 left-0 font-mono text-[10px] uppercase tracking-[.2em] text-ink/60">Bengaluru → Indiranagar</div>
+      <div className="absolute bottom-2 left-0 font-mono text-[10px] uppercase tracking-[.2em] text-ink/60">NCR → Cyber City</div>
     </div>
   )
 }
