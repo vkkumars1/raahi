@@ -5,6 +5,7 @@ import { Fraunces, Instrument_Sans, JetBrains_Mono } from 'next/font/google'
 import { CustomCursor } from '@/components/cursor'
 import { PaperGrain } from '@/components/design-system'
 import { SmoothScrollProvider } from '@/components/providers/smooth-scroll'
+import { RaahiSathi } from '@/components/raahi-sathi'
 
 const fraunces = Fraunces({ subsets: ['latin'], variable: '--font-fraunces', display: 'swap' })
 const instrument = Instrument_Sans({ subsets: ['latin'], variable: '--font-instrument', display: 'swap' })
@@ -49,6 +50,7 @@ export default function RootLayout({
         <SmoothScrollProvider>{children}</SmoothScrollProvider>
         <PaperGrain />
         <CustomCursor />
+        <RaahiSathi />
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
