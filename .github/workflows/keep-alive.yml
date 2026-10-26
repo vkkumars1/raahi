@@ -1,0 +1,36 @@
+name: Keep Raahi awake
+
+# Render's free web service sleeps after 15 min without traffic. A once-a-day ping is NOT enough for that,
+# so this runs two schedules:
+#   1. warm  - every 10 min between 03:00-18:59 UTC (08:30 AM - 12:29 AM IST). Keeps the API instantly responsive
+#              while recruiters are awake, and stays well under Render's 750 free hours/month
+#              (about 16h x 31 days = ~500h) so the AI service can also wake on demand.
+#   2. deep  - once a day. Hits /health/deep which runs SELECT 1 on Postgres and PING on Redis, so Neon and
+#              Upstash always see recent activity.
+# Run it manually any time (Actions tab -> Keep Raahi awake -> Run workflow), e.g. right before sending your resume.
+
+on:
+  schedule:
+    - cron: "*/10 3-18 * * *"
+    - cron: "30 6 * * *"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "warm or deep"
+        default: "deep"
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Ping
+        env:
+          BACKEND_URL: ${{ secrets.BACKEND_URL }}
+          FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
+          MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || (github.event.schedule == '30 6 * * *' && 'deep' || 'warm') }}
+        run: node scripts/keep-alive.mjs

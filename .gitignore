@@ -14,3 +14,12 @@ __v0_jsx-dev-runtime.ts
 node_modules
 .next/
 .DS_Store
+# backend
+api/node_modules
+api/dist
+ai-service/__pycache__
+ai-service/.pytest_cache
+ai-service/venv
+.env
+.env.local
+__pycache__
