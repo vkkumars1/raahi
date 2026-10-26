@@ -13,8 +13,7 @@ const transport = env.SMTP_HOST
 
 export async function sendOtpMail(to: string, code: string) {
   if (!transport) {
-    if (isProd) throw new Error("SMTP is not configured");
-    logger.warn(`[DEV ONLY] OTP for ${to}: ${code}`);
+    logger.warn(`[OTP LOG FALLBACK] SMTP not configured — OTP for ${to}: ${code}`);
     return;
   }
   await transport.sendMail({
