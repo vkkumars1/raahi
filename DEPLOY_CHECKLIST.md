@@ -63,12 +63,11 @@ Settings → Secrets and variables → Actions → New repository secret
 2. **Verify**: `curl -s -H "Authorization: Bearer gsk_..." https://api.groq.com/openai/v1/models | head -c 200`
 3. Save as Render `GROQ_API_KEY` for the `raahi-ai` service.
 
-### 2.4 — SMTP (Gmail app password)
-1. https://myaccount.google.com → Security → 2-Step Verification (must be ON)
-2. https://myaccount.google.com/apppasswords → create "Raahi API" → copy the 16 chars (strip spaces)
-3. **Verify** locally: `node -e 'const t=require("nodemailer").createTransport({host:"smtp.gmail.com",port:587,auth:{user:"you@gmail.com",pass:"<pass>"}}); t.verify().then(console.log).catch(console.error)'`
-4. Save as `SMTP_USER` and `SMTP_PASS` on Render.
-   - If `verify()` fails with 535 BadCredentials: regenerate the app password; make sure the Gmail account is the same one you put in `MAIL_FROM`.
+### 2.4 — Email (OTP delivery)
+**Render free tier blocks outbound SMTP (ports 25, 465, 587, 2525)**, so Gmail/Brevo over SMTP will time out on free. Options:
+- **Keep the log fallback** (default): the mailer prints `[OTP LOG FALLBACK] SMTP not configured — OTP for X: 123456` in the Render API log. You read the OTP from Render dashboard → `raahi-api` → Logs. Fine for a solo demo but not for real users.
+- **Switch to HTTP email API** (recommended for real use): Resend, Brevo-API, Postmark, SendGrid — all free tiers, all send over HTTPS (not blocked). Replace `api/src/lib/mailer.ts` to POST to their REST endpoint instead of nodemailer SMTP. Add `RESEND_API_KEY` (or equivalent) env var.
+- **Upgrade Render to Starter ($7/mo per service)** — removes the SMTP block. Then set `SMTP_HOST=smtp.gmail.com`, `SMTP_PORT=587`, `SMTP_USER=<gmail>`, `SMTP_PASS=<16-char Gmail app password>`, `MAIL_FROM="Raahi <same gmail>"`. Verified locally that app password `jtgv vwoi ansn kzsz` belongs to `varunkumarrss2001@gmail.com` and authenticates with Gmail — only the Render outbound-SMTP block is in the way.
 
 ### 2.5 — Render Blueprint (both services at once)
 1. Fork or push this repo to GitHub (branch `backend-setup` or `main`).
