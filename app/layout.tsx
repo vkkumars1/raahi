@@ -14,7 +14,6 @@ const jetbrains = JetBrains_Mono({ subsets: ['latin'], variable: '--font-jetbrai
 export const metadata: Metadata = {
   title: 'Raahi — Share the ride, keep the city moving',
   description: 'Verified commuter carpools for Indian cities.',
-  generator: 'v0.app',
   icons: {
     icon: [
       {

@@ -73,7 +73,20 @@ export function OfferForm() {
   const totalFare = useMemo(() => distance * Number(values.pricePerKm || 0), [distance, values.pricePerKm])
   async function submit(values: FormValues) {
     if (!originPoint || !destinationPoint || route.length < 2) return
-    await createRide({ ...values, routeGeoJSON: { type: 'LineString', coordinates: route.map((point) => [point.lng, point.lat]) } })
+    const now = new Date()
+    const [h, m] = values.departTime.split(':').map(Number)
+    const depart = new Date(now)
+    depart.setHours(h, m, 0, 0)
+    if (depart.getTime() < now.getTime()) depart.setDate(depart.getDate() + 1)
+    await createRide({
+      origin: { label: originPoint.label, lat: originPoint.lat, lng: originPoint.lng },
+      destination: { label: destinationPoint.label, lat: destinationPoint.lat, lng: destinationPoint.lng },
+      routeGeoJSON: { type: 'LineString', coordinates: route.map((point) => [point.lng, point.lat]) },
+      departTime: depart.toISOString(),
+      seats: values.seats,
+      pricePerKm: values.pricePerKm,
+      vehicleType: values.vehicleType,
+    })
     setSubmitted(true)
     setTimeout(() => router.push('/dashboard'), 1200)
   }

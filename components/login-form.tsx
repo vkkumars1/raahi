@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { z } from 'zod'
 import { ArrowLeft, ArrowRight, Check, Loader2, Mail, RefreshCw } from 'lucide-react'
-import { requestOtp, verifyOtp } from '@/lib/api'
+import { requestOtp, verifyOtp, friendlyError } from '@/lib/api'
 import { useUserStore } from '@/lib/user-store'
 import { Button } from '@/components/ui/button'
 
@@ -87,12 +87,10 @@ export function LoginForm({ nextPath = '/dashboard' }: { nextPath?: string }) {
     setError('')
     try {
       const result = await verifyOtp(email, code)
-      const session = await fetch('/api/session', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(result) })
-      if (!session.ok) throw new Error('Could not save your session. Please try again.')
       setUser(result.user)
       router.replace(nextPath || '/dashboard')
     } catch (verifyError) {
-      setError(verifyError instanceof Error ? verifyError.message : 'That code did not work.')
+      setError(friendlyError(verifyError))
       setOtp(Array(OTP_LENGTH).fill(''))
       inputs.current[0]?.focus()
     } finally {

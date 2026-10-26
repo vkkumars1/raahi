@@ -1,0 +1,47 @@
+# Render Blueprint: New -> Blueprint -> pick this repo. Secrets marked sync:false are asked in the dashboard.
+services:
+  - type: web
+    name: raahi-api
+    runtime: docker
+    rootDir: api
+    plan: free
+    region: singapore
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL        # Neon connection string (with ?sslmode=require)
+        sync: false
+      - key: REDIS_URL           # Upstash rediss:// URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: OTP_PEPPER
+        generateValue: true
+      - key: FRONTEND_URL        # e.g. https://raahi-ashy.vercel.app
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: MAIL_FROM
+        sync: false
+      - key: AI_SERVICE_URL      # https://raahi-ai.onrender.com
+        sync: false
+
+  - type: web
+    name: raahi-ai
+    runtime: docker
+    rootDir: ai-service
+    plan: free
+    region: singapore
+    healthCheckPath: /health
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+      - key: API_URL             # https://raahi-api.onrender.com
+        sync: false

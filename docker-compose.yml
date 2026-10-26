@@ -1,0 +1,37 @@
+# Local full stack:  docker compose up --build
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: raahi
+    ports: ["5432:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      retries: 10
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+  api:
+    build: ./api
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      PORT: 4000
+      DATABASE_URL: postgres://postgres:postgres@db:5432/raahi
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: local-dev-jwt-secret-change-me
+      OTP_PEPPER: local-dev-otp-pepper-change-me
+      FRONTEND_URL: http://localhost:3000
+      AI_SERVICE_URL: http://ai:8000
+    ports: ["4000:4000"]
+  ai:
+    build: ./ai-service
+    environment:
+      API_URL: http://api:4000
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+    ports: ["8000:8000"]
+volumes:
+  pgdata:

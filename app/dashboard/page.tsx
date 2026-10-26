@@ -1,5 +1,7 @@
 import { Suspense } from "react"
 import { getDashboardStats, getMe, getMyBookings, getMyRides } from "@/lib/api"
+
+export const dynamic = 'force-dynamic'
 import { DashboardClient } from "@/components/dashboard-client"
 
 async function DashboardData() {
