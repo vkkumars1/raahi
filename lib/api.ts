@@ -302,12 +302,24 @@ function toPlace(input: Place | string | undefined, fallback = 'Unknown'): Place
   return input
 }
 
+async function serverAuthHeader(): Promise<Record<string, string>> {
+  if (typeof window !== 'undefined') return {}
+  try {
+    const mod = await import('next/headers')
+    const token = (await mod.cookies()).get('raahi_session')?.value
+    return token ? { Authorization: `Bearer ${token}` } : {}
+  } catch {
+    return {}
+  }
+}
+
 async function request<T>(path: string, schema: z.ZodType<T>, init?: RequestInit): Promise<T> {
   if (!API_URL) throw new ApiError('API not configured', 500, { code: 'no_api_url' })
+  const authHeader = await serverAuthHeader()
   const response = await fetch(`${API_URL}${path}`, {
     ...init,
     credentials: 'include',
-    headers: { 'content-type': 'application/json', ...(init?.headers ?? {}) },
+    headers: { 'content-type': 'application/json', ...authHeader, ...(init?.headers ?? {}) },
     cache: 'no-store',
   })
   const text = await response.text()

@@ -1,4 +1,6 @@
 import Link from 'next/link'
+
+export const dynamic = 'force-dynamic'
 import { getRide } from '@/lib/api'
 import { BookSeat } from '@/components/book-seat'
 import { RideChat } from '@/components/ride-chat'

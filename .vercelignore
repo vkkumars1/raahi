@@ -1,0 +1,8 @@
+api
+ai-service
+scripts
+docker-compose.yml
+render.yaml
+DEPLOY_CHECKLIST.md
+README.md
+FRONTEND_INTEGRATION.md

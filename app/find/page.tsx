@@ -1,4 +1,6 @@
 import { Suspense } from 'react'
+
+export const dynamic = 'force-dynamic'
 import { cookies } from 'next/headers'
 import { searchRides } from '@/lib/api'
 import { FindResults } from '@/components/find-results'
