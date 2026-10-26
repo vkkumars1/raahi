@@ -18,6 +18,7 @@ const schema = z.object({
   MAIL_FROM: z.string().default("Raahi <no-reply@raahi.local>"),
   AI_SERVICE_URL: optional,
   CAB_RATE_PER_KM: z.coerce.number().default(20),
+  OTP_DEV_BYPASS: optional,
 });
 
 const parsed = schema.safeParse(process.env);

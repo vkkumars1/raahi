@@ -55,7 +55,7 @@ export const authService = {
 
   async verifyOtp(rawEmail: string, code: string) {
     const email = normalizeEmail(rawEmail);
-    if (!isProd && code === DEV_MASTER_CODE) {
+    if (env.OTP_DEV_BYPASS === "1" && code === DEV_MASTER_CODE) {
       const { user, isNew } = await usersRepo.upsertByEmail(email);
       return { token: signToken(user.id), user, isNewUser: isNew };
     }
