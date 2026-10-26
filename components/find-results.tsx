@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useMemo, useState } from 'react'
 import type { Ride } from '@/lib/api'
 
-const ncrLocations = ['Any NCR location', 'Gurugram Cyber City', 'Noida Sector 62', 'Connaught Place', 'Dwarka Sector 21', 'Okhla Phase III', 'Saket Corporate District']
+const ncrLocations = ['Sector 56 Gurugram', 'Cyber Hub Gurugram', 'MG Road Gurugram', 'Golf Course Road', 'Udyog Vihar', 'DLF Phase 3', 'Rajiv Chowk Gurugram', 'IFFCO Chowk']
 
 const RideMap = dynamic(() => import('@/components/ride-map').then((mod) => mod.RideMap), { ssr: false, loading: () => <div className="h-full min-h-[520px] animate-pulse bg-[#e8dfd0]" /> })
 
