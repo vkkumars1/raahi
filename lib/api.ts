@@ -122,6 +122,11 @@ export type Ride = {
   isHost?: boolean
   myBooking?: Booking
   participants?: Array<{ id: string; name?: string }>
+  fare?: number
+  matchPercent?: number
+  segmentKm?: number
+  detourKm?: number
+  minutesApart?: number
 }
 
 export type Booking = {
@@ -404,7 +409,14 @@ export async function searchRides(params: SearchParams): Promise<Ride[]> {
   const query = new URLSearchParams()
   Object.entries(params).forEach(([k, v]) => v !== undefined && query.set(k, String(v)))
   const data = await request(`/rides/search?${query}`, z.object({ results: z.array(RawSearchSchema), count: z.number().optional() }))
-  return data.results.map((r) => ({ ...toRide(r.ride), distanceKm: r.segmentKm }))
+  return data.results.map((r) => ({
+    ...toRide(r.ride),
+    fare: r.fare,
+    matchPercent: r.matchPercent,
+    segmentKm: r.segmentKm,
+    detourKm: r.detourKm,
+    minutesApart: r.minutesApart,
+  }))
 }
 
 export async function searchRidesDetailed(params: SearchParams): Promise<SearchResult[]> {
