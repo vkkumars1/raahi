@@ -47,7 +47,7 @@ async function Results({ searchParams }: { searchParams: Promise<Record<string, 
       dropLat: parseCoordinate(params.dropLat, GURUGRAM_DEFAULTS.dropLat),
       dropLng: parseCoordinate(params.dropLng, GURUGRAM_DEFAULTS.dropLng),
       time: resolveTime(params.time),
-      windowMinutes: parseCoordinate(params.windowMinutes, 45),
+      windowMinutes: parseCoordinate(params.windowMinutes, 180),
     })
   } catch {
     rides = []
