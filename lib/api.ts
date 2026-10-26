@@ -17,31 +17,35 @@ const RawUserSchema = z.object({
 
 const RawRideSchema = z.object({
   id: z.string(),
-  host: z.object({ id: z.string(), name: z.string().nullable().optional(), trustScore: z.number().optional() }).optional(),
+  host: z.object({ id: z.string(), name: z.string().nullable().optional(), trustScore: z.number().optional() }).passthrough().optional(),
   origin: PlaceSchema,
   destination: PlaceSchema,
   departTime: z.string(),
-  seats: z.number(),
+  seats: z.number().optional(),
+  seatsTotal: z.number().optional(),
   seatsLeft: z.number().optional(),
   pricePerKm: z.number(),
+  distanceKm: z.number().optional(),
   vehicleType: z.string().nullable().optional(),
   status: z.string().optional(),
   route: z.any().optional(),
   routeGeoJSON: z.any().optional(),
-})
+}).passthrough()
 
 const RawBookingSchema = z.object({
   id: z.string(),
   rideId: z.string(),
   pickup: PlaceSchema,
-  drop: PlaceSchema,
+  drop: PlaceSchema.optional(),
+  dropoff: PlaceSchema.optional(),
   fare: z.number().optional(),
   segmentKm: z.number().optional(),
+  distanceKm: z.number().optional(),
   status: z.string().optional(),
   createdAt: z.string().optional(),
   ride: RawRideSchema.optional(),
   rated: z.boolean().optional(),
-})
+}).passthrough()
 
 const RawSearchSchema = z.object({
   ride: RawRideSchema,
@@ -66,10 +70,10 @@ const RawDashboardSchema = z.object({
   moneyEarned: z.number(),
   co2SavedKg: z.number(),
   ridesShared: z.number(),
-  avgRating: z.number(),
+  avgRating: z.number().nullable().optional(),
   trustScore: z.number(),
-  monthly: z.array(z.object({ month: z.string(), rides: z.number() })).optional(),
-})
+  monthly: z.array(z.object({ month: z.string() }).passthrough()).optional(),
+}).passthrough()
 
 const OtpRequestResponseSchema = z.object({
   ok: z.boolean(),
@@ -162,9 +166,9 @@ export type DashboardStats = {
   ridesShared: number
   rides: number
   bookings: number
-  avgRating: number
+  avgRating: number | null
   trustScore: number
-  monthly?: Array<{ month: string; rides: number }>
+  monthly?: Array<{ month: string; rides?: number; saved?: number; earned?: number }>
 }
 
 export type OtpRequestResponse = {
@@ -239,7 +243,8 @@ function toUser(raw: RawUser): User {
 }
 
 function toRide(raw: RawRide): Ride {
-  const seatsLeft = raw.seatsLeft ?? raw.seats
+  const seats = raw.seats ?? raw.seatsTotal ?? 0
+  const seatsLeft = raw.seatsLeft ?? seats
   return {
     id: raw.id,
     origin: raw.origin.label,
@@ -247,10 +252,11 @@ function toRide(raw: RawRide): Ride {
     originPlace: raw.origin,
     destinationPlace: raw.destination,
     departTime: raw.departTime,
-    seats: raw.seats,
+    seats,
     seatsLeft,
     availableSeats: seatsLeft,
     pricePerKm: raw.pricePerKm,
+    distanceKm: raw.distanceKm,
     vehicleType: raw.vehicleType ?? undefined,
     status: raw.status,
     host: raw.host ? { id: raw.host.id, name: raw.host.name ?? undefined, trustScore: raw.host.trustScore } : undefined,
@@ -261,15 +267,16 @@ function toRide(raw: RawRide): Ride {
 }
 
 function toBooking(raw: RawBooking): Booking {
+  const dropPlace = raw.drop ?? raw.dropoff ?? { label: 'Drop', lat: 0, lng: 0 }
   return {
     id: raw.id,
     rideId: raw.rideId,
     pickup: raw.pickup.label,
-    drop: raw.drop.label,
+    drop: dropPlace.label,
     pickupPlace: raw.pickup,
-    dropPlace: raw.drop,
+    dropPlace,
     fare: raw.fare,
-    segmentKm: raw.segmentKm,
+    segmentKm: raw.segmentKm ?? raw.distanceKm,
     status: raw.status,
     createdAt: raw.createdAt,
     ride: raw.ride ? toRide(raw.ride) : undefined,
@@ -354,7 +361,9 @@ export async function getMe(): Promise<User> {
 
 export async function updateMe(input: ProfileInput): Promise<User> {
   const body: Record<string, unknown> = { name: input.name, role: input.role, vehicleType: input.vehicleType }
-  if (input.officeLocation && typeof input.officeLocation !== 'string') body.officeLocation = input.officeLocation
+  if (input.officeLocation) {
+    body.officeLocation = typeof input.officeLocation === 'string' ? input.officeLocation : input.officeLocation.label
+  }
   const data = await request('/me', z.object({ user: RawUserSchema }), {
     method: 'PUT',
     body: JSON.stringify(body),
@@ -441,7 +450,7 @@ export async function getMyBookings(): Promise<Booking[]> {
 }
 
 export async function createRating(input: { rideId: string; rating: number; comment?: string; rateeId?: string }): Promise<{ ok: true }> {
-  await request('/ratings', z.object({ rating: z.any() }), { method: 'POST', body: JSON.stringify(input) })
+  await request('/ratings', z.object({ rating: z.any() }).passthrough(), { method: 'POST', body: JSON.stringify(input) })
   return { ok: true }
 }
 
@@ -449,6 +458,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   const raw = await request('/dashboard/stats', RawDashboardSchema)
   return {
     ...raw,
+    avgRating: raw.avgRating ?? null,
     co2Saved: raw.co2SavedKg,
     rides: raw.ridesShared,
     bookings: raw.ridesShared,
