@@ -17,9 +17,9 @@ Follow top-to-bottom. Each step has a "verify" URL you can open to confirm it wo
 | `FRONTEND_URL` | yes | `https://raahi-ashy.vercel.app,http://localhost:3000` | comma-separated. Add preview URLs here if you use them |
 | `SMTP_HOST` | yes* | `smtp.gmail.com` | *required for prod OTPs; dev prints to log |
 | `SMTP_PORT` | yes* | `587` | |
-| `SMTP_USER` | yes* | `you@gmail.com` | the Gmail account that generated the app password |
-| `SMTP_PASS` | yes* | 16-char app password | **no spaces** — Google shows it as "jtgv vwoi ansn kzsz", strip the spaces |
-| `MAIL_FROM` | yes* | `Raahi <you@gmail.com>` | must match the authenticated sender |
+| `SMTP_USER` | yes* | `varunkumarrss2001@gmail.com` | the Gmail account that generated the app password |
+| `SMTP_PASS` | yes* | 16-char app password | **no spaces** — Google shows it as 4 blocks of 4; strip the spaces |
+| `MAIL_FROM` | yes* | `Raahi <varunkumarrss2001@gmail.com>` | must match the authenticated sender |
 | `AI_SERVICE_URL` | yes | `https://raahi-ai.onrender.com` | the other Render URL |
 | `CAB_RATE_PER_KM` | no | `20` | used by stats; default 20 |
 
