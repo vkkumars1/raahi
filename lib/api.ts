@@ -429,12 +429,12 @@ export async function searchRidesDetailed(params: SearchParams): Promise<SearchR
 export async function getRide(id: string): Promise<Ride> {
   const data = await request(`/rides/${encodeURIComponent(id)}`, z.object({
     ride: RawRideSchema,
-    isHost: z.boolean().optional(),
-    myBooking: RawBookingSchema.optional(),
-    participants: z.array(z.object({ id: z.string(), name: z.string().nullable().optional() })).optional(),
-  }))
+    isHost: z.boolean().nullable().optional(),
+    myBooking: RawBookingSchema.nullable().optional(),
+    participants: z.array(z.object({ id: z.string(), name: z.string().nullable().optional(), role: z.string().optional() })).nullable().optional(),
+  }).passthrough())
   const ride = toRide(data.ride)
-  ride.isHost = data.isHost
+  ride.isHost = data.isHost ?? undefined
   ride.myBooking = data.myBooking ? toBooking(data.myBooking) : undefined
   ride.participants = data.participants?.map((p) => ({ id: p.id, name: p.name ?? undefined }))
   return ride
@@ -509,6 +509,11 @@ export async function chatWithAi(
   })
   if (!response.ok) throw new ApiError('AI chat is unavailable', response.status)
   return response
+}
+
+export function avatarUrl(seed: string | undefined): string {
+  const s = encodeURIComponent((seed || 'raahi').trim())
+  return `https://api.dicebear.com/9.x/avataaars/svg?seed=${s}&radius=50&backgroundColor=f2a33a,e4b24b,c8442b,f4ede0`
 }
 
 export function friendlyError(error: unknown): string {

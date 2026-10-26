@@ -3,6 +3,7 @@
 import dynamic from 'next/dynamic'
 import { useMemo, useState } from 'react'
 import type { Ride } from '@/lib/api'
+import { avatarUrl } from '@/lib/api'
 
 const gurugramAreas = [
   'Sector 56 Gurugram',
@@ -116,14 +117,17 @@ export function FindResults({
                   className={`ticket-stub w-full text-left transition-transform hover:-translate-y-1 ${active ? 'ring-2 ring-brick ring-offset-2 ring-offset-cream' : ''}`}
                 >
                   <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-serif text-2xl">{ride.driver?.name ?? ride.host?.name ?? 'Raahi host'}</span>
-                        {ride.driver?.verified && <span className="inline-flex size-5 items-center justify-center rounded-full bg-brick text-xs text-cream" aria-label="Verified host">✓</span>}
+                    <div className="flex items-center gap-3">
+                      <img src={avatarUrl(ride.host?.name ?? ride.host?.id)} alt="" width={48} height={48} className="size-12 shrink-0 border-2 border-ink bg-cream" />
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-serif text-2xl">{ride.driver?.name ?? ride.host?.name ?? 'Raahi host'}</span>
+                          {ride.driver?.verified && <span className="inline-flex size-5 items-center justify-center rounded-full bg-brick text-xs text-cream" aria-label="Verified host">✓</span>}
+                        </div>
+                        <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.14em] text-ink/55">
+                          Verified commuter · {match}% match
+                        </p>
                       </div>
-                      <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.14em] text-ink/55">
-                        Verified commuter · {match}% match
-                      </p>
                     </div>
                     <div className="relative grid size-16 place-items-center rounded-full border-[5px] border-saffron font-mono text-xs after:absolute after:inset-1 after:rounded-full after:border after:border-dashed after:border-ink/25">
                       {match}%

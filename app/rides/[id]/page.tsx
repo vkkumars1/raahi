@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { getRide, getRideMessages, type Ride, type Message } from '@/lib/api'
+import { getRide, getRideMessages, avatarUrl, type Ride, type Message } from '@/lib/api'
 import { BookSeat } from '@/components/book-seat'
 import { RideChat } from '@/components/ride-chat'
 import { RideMapDynamic } from '@/components/ride-map-dynamic'
@@ -30,12 +30,10 @@ export default async function RideDetailPage({ params }: { params: Promise<{ id:
   const { id } = await params
 
   let ride: Ride | null = null
-  let fetchError = ''
   try {
     ride = await getRide(id)
   } catch (e) {
-    fetchError = e instanceof Error ? e.message : String(e)
-    console.error('[rides/[id]] getRide failed:', fetchError)
+    console.error('[rides/[id]] getRide failed:', e instanceof Error ? e.message : String(e))
     ride = null
   }
 
@@ -44,7 +42,6 @@ export default async function RideDetailPage({ params }: { params: Promise<{ id:
       <main className="mx-auto max-w-3xl px-5 pb-20 pt-16 text-center">
         <h1 className="font-serif text-4xl">Ride not found</h1>
         <p className="mt-3 text-ink/60">This ride may have been completed or cancelled.</p>
-        {fetchError && <pre className="mx-auto mt-4 max-w-xl overflow-auto bg-ink/5 p-3 text-left font-mono text-xs text-brick">debug: {fetchError}</pre>}
         <Link href="/find" className="mt-6 inline-block border-2 border-ink bg-saffron px-5 py-3 font-mono text-xs uppercase tracking-widest shadow-[3px_3px_0_#14110F]">Back to find</Link>
       </main>
     )
@@ -83,10 +80,13 @@ export default async function RideDetailPage({ params }: { params: Promise<{ id:
           </h1>
           <div className="ticket-stub mt-8">
             <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="font-mono text-[11px] uppercase tracking-widest text-ink/55">Your host</p>
-                <h2 className="mt-2 font-serif text-3xl">{ride.host?.name ?? ride.driver?.name ?? 'Raahi host'}</h2>
-                <p className="mt-1 text-sm text-ink/60">Verified commuter · Trust {ride.host?.trustScore ?? 55}/100</p>
+              <div className="flex items-start gap-4">
+                <img src={avatarUrl(ride.host?.name ?? ride.host?.id)} alt="" width={64} height={64} className="size-16 border-2 border-ink bg-cream" />
+                <div>
+                  <p className="font-mono text-[11px] uppercase tracking-widest text-ink/55">Your host</p>
+                  <h2 className="mt-2 font-serif text-3xl">{ride.host?.name ?? ride.driver?.name ?? 'Raahi host'}</h2>
+                  <p className="mt-1 text-sm text-ink/60">Verified commuter · Trust {ride.host?.trustScore ?? 55}/100</p>
+                </div>
               </div>
               <div className="rounded-full bg-brick px-3 py-2 font-mono text-xs text-cream">✓ VERIFIED</div>
             </div>
