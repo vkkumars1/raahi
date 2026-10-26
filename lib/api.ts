@@ -508,9 +508,11 @@ export function friendlyError(error: unknown): string {
       case 'off_route': return 'Pickup or drop is too far from the host route.'
       case 'wrong_direction': return 'Pickup must come before drop along the route.'
       case 'rate_limited': return error.retryAfter ? `Too many requests. Try again in ${error.retryAfter}s.` : 'Too many requests, slow down a bit.'
-      case 'invalid_code': return 'That code does not match. Try again or request a new one.'
+      case 'invalid_code':
+      case 'otp_invalid': return 'That code does not match. Try again or request a new one.'
       case 'locked': return 'Too many wrong attempts. Request a new code.'
-      case 'expired': return 'This code expired. Request a fresh one.'
+      case 'expired':
+      case 'otp_expired': return 'This code expired. Request a fresh one.'
     }
     if (error.status === 401) return 'Please sign in to continue.'
     return error.message || 'Something went wrong. Please try again.'
