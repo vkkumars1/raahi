@@ -30,9 +30,12 @@ export default async function RideDetailPage({ params }: { params: Promise<{ id:
   const { id } = await params
 
   let ride: Ride | null = null
+  let fetchError = ''
   try {
     ride = await getRide(id)
-  } catch {
+  } catch (e) {
+    fetchError = e instanceof Error ? e.message : String(e)
+    console.error('[rides/[id]] getRide failed:', fetchError)
     ride = null
   }
 
@@ -41,6 +44,7 @@ export default async function RideDetailPage({ params }: { params: Promise<{ id:
       <main className="mx-auto max-w-3xl px-5 pb-20 pt-16 text-center">
         <h1 className="font-serif text-4xl">Ride not found</h1>
         <p className="mt-3 text-ink/60">This ride may have been completed or cancelled.</p>
+        {fetchError && <pre className="mx-auto mt-4 max-w-xl overflow-auto bg-ink/5 p-3 text-left font-mono text-xs text-brick">debug: {fetchError}</pre>}
         <Link href="/find" className="mt-6 inline-block border-2 border-ink bg-saffron px-5 py-3 font-mono text-xs uppercase tracking-widest shadow-[3px_3px_0_#14110F]">Back to find</Link>
       </main>
     )
